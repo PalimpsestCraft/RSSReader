@@ -14,34 +14,34 @@
    ```
 
 2. index.html内でRSSのURLを指定（Googleニュースがおすすめ）
-```
-// 複数のRSSフィードをロード（複数のRSSフィードをまとめて一つのRSSフィードとして扱うことも可能。）
-loadRSS('feed1', ['URL1', 'URL', 'URL3']);
-loadRSS('feed2', ["URL4"]);
-loadRSS('feed3', ["URL5"]);
-// 必要に応じてさらにフィードを追加
-```
+   ```
+   // 複数のRSSフィードをロード（複数のRSSフィードをまとめて一つのRSSフィードとして扱うことも可能。）
+   loadRSS('feed1', ['URL1', 'URL', 'URL3']);
+   loadRSS('feed2', ["URL4"]);
+   loadRSS('feed3', ["URL5"]);
+   // 必要に応じてさらにフィードを追加
+   ```
 
 3. 必要に応じてapp.py内で翻訳するURLを指定
 
    以下はGoogleニュースのRSSフィードの例
-```
-# 英語の翻訳
-if 'ceid=US:en' in url:
-    translator = Translator()
-    for entry in filtered_entries:
-        entry['title'] = translator.translate(entry['title'], src='en', dest='ja').text
-# 中国語の翻訳
-if 'ceid=CN:zh-Hans' in url:
-    translator = Translator()
-    for entry in filtered_entries:
-        entry['title'] = translator.translate(entry['title'], src='zh-cn', dest='ja').text
-# 韓国語の翻訳
-if 'ceid=KR%3Ako' in url:
-    translator = Translator()
-    for entry in filtered_entries:
-        entry['title'] = translator.translate(entry['title'], src='ko', dest='ja').text
-```
+   ```
+   # 英語の翻訳
+   if 'ceid=US:en' in url:
+       translator = Translator()
+       for entry in filtered_entries:
+           entry['title'] = translator.translate(entry['title'], src='en', dest='ja').text
+   # 中国語の翻訳
+   if 'ceid=CN:zh-Hans' in url:
+       translator = Translator()
+       for entry in filtered_entries:
+           entry['title'] = translator.translate(entry['title'], src='zh-cn', dest='ja').text
+   # 韓国語の翻訳
+   if 'ceid=KR%3Ako' in url:
+       translator = Translator()
+       for entry in filtered_entries:
+           entry['title'] = translator.translate(entry['title'], src='ko', dest='ja').text
+   ```
 
 4. Flaskサーバーを起動 / Start the Flask server.
    ```bash
