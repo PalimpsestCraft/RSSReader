@@ -12,11 +12,8 @@
    ```bash
    pip install flask feedparser googletrans
    ```
-2. Flaskサーバーを起動 / Start the Flask server.
-   ```bash
-   python app.py
-   ```
-3. index.html内でRSSのURLを指定（Googleニュースがおすすめ）
+
+2. index.html内でRSSのURLを指定（Googleニュースがおすすめ）
 ```
 // 複数のRSSフィードをロード（複数のRSSフィードをまとめて一つのRSSフィードとして扱うことも可能。）
 loadRSS('feed1', ['URL1', 'URL', 'URL3']);
@@ -24,7 +21,8 @@ loadRSS('feed2', ["URL4"]);
 loadRSS('feed3', ["URL5"]);
 // 必要に応じてさらにフィードを追加
 ```
-4. 必要に応じてapp.py内で翻訳するURLを指定
+
+3. 必要に応じてapp.py内で翻訳するURLを指定
 
    以下はGoogleニュースのRSSフィードの例
 ```
@@ -44,6 +42,11 @@ if 'ceid=KR%3Ako' in url:
     for entry in filtered_entries:
         entry['title'] = translator.translate(entry['title'], src='ko', dest='ja').text
 ```
+
+4. Flaskサーバーを起動 / Start the Flask server.
+   ```bash
+   python app.py
+   ```
 
 ## 免責事項 / Disclaimer
 本プログラム（以下「本ソフトウェア」）は、現状有姿（"AS IS"）で提供されます。本ソフトウェアの使用に関する以下の事項をご了承ください。<br>
