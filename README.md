@@ -26,7 +26,7 @@ loadRSS('feed3', ["URL5"]);
 ```
 4. 必要に応じてapp.py内で翻訳するURLを指定
 
-以下はGoogleニュースのRSSフィードの例
+   以下はGoogleニュースのRSSフィードの例
 ```
 # 英語の翻訳
 if 'ceid=US:en' in url:
