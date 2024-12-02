@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AI News Picker</title>
+    <meta name="referrer" content="no-referrer">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <style>
+        body {
+            background-image: url('/static/images/background.svg');
+            background-repeat: no-repeat;
+            background-position: bottom;
+            background-attachment: fixed;
+            height: 100vh;
+            font-size: 15px;
+            padding: 0px;
+            margin: 0px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        a:link {
+            text-decoration: none;
+            color: #0e5772;
+        }
+        a:visited {
+            color: #a1b2ce;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        a:active {
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 15px 15px 0px 15px;
+            padding: 0px;
+            font-weight: normal;
+            letter-spacing: 0.1em;
+            display: inline-block;
+            background: linear-gradient(90deg, #0693e3, #f78da7);
+            background: -webkit-linear-gradient(0deg, #0693e3, #f78da7);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+            font-family: 'Lato', sans-serif;
+        }
+        h2 {
+            font-size: 16px;
+            padding: 5px 5px 5px 0px;
+            margin: 0px;
+            display: inline-block;
+            background: linear-gradient(90deg, #0693e3, #f78da7);
+            background: -webkit-linear-gradient(0deg, #0693e3, #f78da7);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        /* フィードコンテナのスタイル */
+        .feed-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap; /* カラムが折り返さないように設定 */
+        }
+
+        /* フィードカラムのスタイル */
+        .feed-column {
+            flex: 0 0 420px; /* PCでは各カラムが全体の50%の幅を持つ */
+            max-width: 420px; /* 最大幅も50%に設定 */
+        }
+
+        /* 各フィードのスタイル */
+        .feed {
+            overflow: hidden; /* コンテンツがオーバーフローする場合は見切れるように設定 */
+            white-space: nowrap; /* テキストを折り返さない */
+            text-overflow: ellipsis; /* テキストが見切れる場合は省略記号を表示 */
+            padding: 15px;
+        }
+
+        /* スマートフォン向けのスタイル（メディアクエリ） */
+        @media screen and (max-width: 480px) {
+            .feed-container {
+                flex-direction: column;
+                flex-wrap: wrap;
+            }
+        }
+        
+        .article {
+            margin: 3px 0px 3px 0px;
+            letter-spacing: -0.05em;
+        }
+
+        .date {
+            font-size: 12px;
+            color: gray;
+            padding: 0px 5px 0px 0px;
+        }
+    </style>
+    
+    <script>
+        function formatDateToMMDD(dateString) {
+            const date = new Date(dateString);
+            let month = (date.getMonth() + 1).toString();
+            let day = date.getDate().toString();
+
+            // 月と日が1桁の場合、先頭に0を追加
+            month = month.length < 2 ? '0' + month : month;
+            day = day.length < 2 ? '0' + day : day;
+
+            return `${month}/${day}`;
+        }
+
+        async function loadRSS(elementId, feedUrls) {
+            const feedPromises = feedUrls.map(url => 
+                fetch(`/api/rss/${encodeURIComponent(url)}`).then(response => response.json())
+            );
+
+            const feeds = await Promise.all(feedPromises);
+
+            // それぞれのフィードからエントリを抽出し、フラットなリストに変換
+            let combinedEntries = [];
+            feeds.forEach(feed => {
+                    combinedEntries = combinedEntries.concat(feed);
+            });
+            // 現在の日付から何日前の日付を計算
+            const fourDaysAgo = new Date();
+            fourDaysAgo.setDate(fourDaysAgo.getDate() - 3);
+
+            // 日付でソートし、過去何日以内のエントリのみをフィルタリング
+            combinedEntries = combinedEntries.filter(entry => {
+                const entryDate = new Date(entry.published);
+                return entryDate > fourDaysAgo;
+            }).sort((a, b) => new Date(b.published) - new Date(a.published));
+
+            // 上位12件のみを取得 
+            const topEntries = combinedEntries.slice(0, 12); 
+            const feedElement = document.getElementById(elementId);
+            feedElement.innerHTML = '';
+
+            // 各エントリを表示
+            topEntries.forEach(entry => {
+                // 必要なプロパティの存在チェック
+                if (entry.title && entry.summary && entry.published) {
+                    const element = document.createElement('div');
+                    element.innerHTML = `<div class="article" title="${entry.title}"><span class="date">${formatDateToMMDD(entry.published)}</span><a href="${entry.link}" target=_blank>${entry.title}</div>`;
+                    feedElement.appendChild(element);
+                }
+            });
+            if (feedElement.innerHTML == '') {
+                feedElement.innerHTML = '<div><span class="date">(3日以内に記事なし)</span></div>';
+            }
+        }
+
+        window.onload = function() {
+            // 複数のRSSフィードをロード
+            loadRSS('feed1', ['https://news.google.com/rss/search?q=AI%20(%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%20OR%20%E7%BF%BB%E8%A8%B3%20OR%20%E8%A6%81%E7%B4%84)&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed2', ["https://news.google.com/rss/search?q=AI%20%E7%94%BB%E5%83%8F&hl=ja&gl=JP&ceid=JP%3Aja"]);
+            loadRSS('feed3', ["https://news.google.com/rss/search?q=AI%20%E5%8B%95%E7%94%BB&hl=ja&gl=JP&ceid=JP%3Aja"]);
+            loadRSS('feed4', ['https://news.google.com/rss/search?q=AI%20%E9%9F%B3%E5%A3%B0&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed5', ['https://news.google.com/rss/search?q=AI%20%E9%9F%B3%E6%A5%BD&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed6', ['https://news.google.com/rss/search?q=ChatGPT&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed7', ['https://news.google.com/rss/search?q=ChatGPT&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed8', ['https://news.google.com/rss/search?q=Gemini&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed9', ['https://news.google.com/rss/search?q=Llama&hl=ja&gl=JP&ceid=JP%3Aja']);
+            loadRSS('feed10', ['https://news.google.com/rss/search?q=Claude&hl=ja&gl=JP&ceid=JP%3Aja']);
+            // 必要に応じてさらにフィードを追加
+        }
+    </script>
+</head>
+<body>
+    <h1>AI News Picker</h1>
+    <div class="feed-container">
+        <div class="feed-column">
+            <div class="feed">
+                <h2>AI テキスト/翻訳/要約</h2>
+                <div id="feed1"><span class="date">読み込み中...</span></div>
+            </div>
+            <div class="feed">
+                <h2>AI 画像</h2>
+                <div id="feed2"><span class="date">読み込み中...</span></div>
+            </div>
+        </div>
+
+        <div class="feed-column">
+            <div class="feed">
+                <h2>AI 動画</h2>
+                <div id="feed3"><span class="date">読み込み中</span></div>
+            </div>
+            <div class="feed">
+                <h2>AI 音声</h2>
+                <div id="feed4"><span class="date">読み込み中</span></div>
+            </div>
+            <div class="feed">
+                <h2>AI 音楽</h2>
+                <div id="feed5"><span class="date">読み込み中...</span></div>
+            </div>
+        </div>
+        <div class="feed-column">
+            <div class="feed">
+                <h2>ChatGPT</h2>
+                <div id="feed6"><span class="date">読み込み中...</span></div>
+            </div>
+            <div class="feed">
+                <h2>Gemini</h2>
+                <div id="feed8"><span class="date">読み込み中...</span></div>
+            </div>
+            <div class="feed">
+                <h2>llama</h2>
+                <div id="feed9"><span class="date">読み込み中...</span></div>
+            </div>
+            <div class="feed">
+                <h2>Claude</h2>
+                <div id="feed10"><span class="date">読み込み中...</span></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
