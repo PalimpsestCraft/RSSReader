@@ -20,7 +20,7 @@ This project is an RSS reader application designed to efficiently collect and or
    pip install flask feedparser googletrans
    ```
 
-2. index.html内でRSSのURLを指定（Googleニュースがおすすめ） / Specify the RSS URL in index.html (Google News is recommended).
+2. templates/index.html内でRSSのURLを指定（Googleニュースがおすすめ） / Specify the RSS URL in templates/index.html (Google News is recommended).
    ```
    // 複数のRSSフィードをロード（複数のRSSフィードをまとめて一つのRSSフィードとして扱うことも可能。）
    loadRSS('feed1', ['URL1', 'URL', 'URL3']);
